@@ -1,2 +1,5 @@
 *.stpr
 *.dta
+*.xlsx
+
+suic-its-data.do
