@@ -1,11 +1,11 @@
-* copy-catting sam's code:
 
 ** do-file: an_its_V3
 ** Interrupted time series analysis - July 2017
 ** This version is a complete change from period versions where I was estimating
 ** multiplicative effects from the negative binomial model
 ** Here I am looking at additive effects and attempting to estimate the rate 
-** difference
+** difference and then looking at the expected vs observed number of deaths 
+** and bootstrapping the difference
 
 
 
