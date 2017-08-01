@@ -22,3 +22,15 @@ its.plot<-ggplot(dat = its, aes(x = year, y = bothsexes)) +
         
         
 its.plot
+
+
+# Plot observed minus expected 
+
+ggplot(dat = its, aes(x = year, y = omenums)) + 
+        geom_bar(stat = "identity") + 
+        theme_bw() +
+        labs(x = "year", 
+             y = "Observed - predicted number of deaths", 
+             title = "Annual difference in observed minus predicted drug-related deaths") + 
+        geom_vline(xintercept = 1986, linetype = 4, colour = "red") + 
+        annotate("text", x = 1988, y = -7000, label = "1986 Anti-Drug Abuse Act")
