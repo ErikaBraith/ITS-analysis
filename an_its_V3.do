@@ -21,21 +21,24 @@ mvrs poisson bothsexes year if adaa == 0, robust offset(lpop) nolog all
 
 global rhs `e(fp_fvl)'
 	
-* temporary for observed and expected 
+* temporary for observed and expected (these are the log number)
 tempvar pxbs pnums omenums
-
 
 * predict number of events and observed minus expected
 
 qui predict double `pxbs', xb
 label var `pxbs' "linear prediction"
+
+* Exponentiate the log of the predicted number
 gen pnums = exp(`pxbs')
 label var pnum "exponentiated linear predictions"
 
+
+* generate observed minus expected
 gen `omenums' = bothsexes - pnums
 label var `omenums' "obs - expected number"
 
-* sum observed and expected in recession period observed (in memory)
+* sum observed and expected after ADAA (in memory)
 
 sum bothsexes if adaa==1 
 scalar oev = `r(sum)' // observed events
@@ -95,12 +98,12 @@ disp as text "Expected events: " as result r(sum)
 
 
 * observed number of events
-qui sum bothsexes if adaa==1  // obs events in recession
+qui sum bothsexes if adaa==1  // obs events after policy
 return scalar oev = r(sum)
 disp as text "Observed events: " as result r(sum)
 	
 * observed minus expected
-gen `omenums' = bothsexes - `pnums`g'' // obs - exp events after recession
+gen `omenums' = bothsexes - `pnums' // obs - exp events after ADAA
 	qui sum `omenums' if adaa==1 
 	return scalar ome = r(sum)
 	disp as text "Obs minus expected: " as result r(sum)
