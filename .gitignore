@@ -2,5 +2,8 @@
 *.dta
 *.xlsx
 *.csv
+*.txt
 
 suic-its-data.do
+
+*.png
