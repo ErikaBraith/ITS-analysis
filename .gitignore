@@ -3,6 +3,8 @@
 *.xlsx
 *.csv
 *.txt
+*.Rhistory
+
 
 suic-its-data.do
 
