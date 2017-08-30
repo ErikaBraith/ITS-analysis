@@ -48,6 +48,7 @@ label var gender "0 female 1 male"
 egen ga=group(gender racebw), label
 tab ga
 
+gen lpop = log(population)
  
 * save and export
 
