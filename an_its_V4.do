@@ -14,64 +14,92 @@
 * stratified by age, race & sex 
 
 
-use "drugdeaths.dta", clear
+use "drugdeaths-race-sex.dta", clear
 
 
-* set up a matrix to collect results - 1 row, 5 columns all containing -99
-matrix define table = J(1,5,-99)
+* set up a matrix to collect results:  1 row, 5 columns all containing -99
+* 5 columns: observer, expected, difference, LL, UL. 
+* 4 rows: black (men, women) white (mean, women)
 
-* find best fitting splines in the pre-policy period
-mvrs poisson bothsexes year if adaa == 0, robust offset(lpop) nolog all
+drop year_0 year_1 year_2
 
-*mvrs poisson female year if adaa == 0, robust offset(lpop) nolog all
-* for men
-*mvrs poisson male year if adaa == 0, robust offset(lpop) nolog all
+matrix define table = J(5,5,-99)
 
+* temporary variables to store observed and predicted suicides
+tempvar pnums omenums
+gen `pnums'= .
+gen `omenums'= .
 
-* for women
+qui levelsof ga, local(levels)
+foreach g of local levels {
+	di " " 
+	di " " 
+	di as result "-> Group = `: label (ga) `g''"
 
+	* find best fitting splines in the pre-policy period
+	mvrs poisson deaths year if adaa == 0 & ga == `g', robust offset(lpop) nolog all
 
-* save best fitting spline as global macro
-
-global rhs `e(fp_fvl)'
+	* save best fitting spline as global macro
+	global rhs`g' `e(fp_fvl)'
 	
-* temporary for observed and expected (these are the log number)
-tempvar pxbs pnums omenums
+	* temporary for observed and expected 
+	tempvar pxbs`g' pnums`g' omenums`g'
 
-* predict number of events and observed minus expected
+	* predict number of events and observed minus expected
+	qui predict double `pxbs`g'' if ga==`g', xb
+	label var `pxbs`g'' "linear prediction"
 
-qui predict double `pxbs', xb
-label var `pxbs' "linear prediction"
+	* Exponentiate the log of the predicted number
+	qui gen `pnums`g'' = exp(`pxbs`g'') if ga==`g'
+	replace `pnums' = `pnums`g'' if ga==`g'
+	*label var `pnums`g'' "exponentiated linear predictions of `g'"
 
-* Exponentiate the log of the predicted number
-gen pnums = exp(`pxbs')
-label var pnum "exponentiated linear predictions"
+	* generate observed minus expected
+	gen `omenums`g'' = deaths - `pnums`g''
+	qui replace `omenums' = `omenums`g'' if ga==`g'
+	*label var `omenums`g'' "obs - expected number `g'"
 
-
-* generate observed minus expected
-gen `omenums' = bothsexes - pnums
-label var `omenums' "obs - expected number"
-
-* sum observed and expected after ADAA (in memory)
-
-sum bothsexes if adaa==1 
-scalar oev = `r(sum)' // observed events
-disp as text "Observed events: " as result r(sum)
-matrix table[1,1] = oev
+	* sum observed and expected after ADAA (in memory)
+	sum deaths if adaa==1 & ga==`g'
+	scalar oev`g' = `r(sum)' // observed events
+	disp as text "Observed events: " as result r(sum)
+	matrix table[`g',1] = oev`g'
 	
-* expected (predicted)
-qui sum pnums if adaa==1 
-scalar eev= `r(sum)' // expected events
-disp as text "Expected events: " as result r(sum)
-matrix table[1,2] = eev
+	* expected (predicted)
+	qui sum `pnums`g'' if adaa==1 & ga == `g'
+	scalar eev`g' = `r(sum)' // expected events
+	disp as text "Expected events: " as result r(sum)
+	matrix table[`g',2] = eev`g'
 
-* obs minus expected
-qui sum `omenums' if adaa==1 
-scalar ome = `r(sum)' // obs - expected
-disp as text "Obs - expected: " as result r(sum)
-matrix table[1,3] = ome
+	* obs minus expected
+	qui sum `omenums`g'' if adaa==1 & ga == `g'
+	scalar ome`g' = `r(sum)' // obs - expected
+	disp as text "Obs - expected: " as result r(sum)
+	matrix table[`g',3] = ome`g'
 	
-matrix oer = [oev, eev, ome]
-matrix list oer
+	matrix oer`g' = [oev`g', eev`g', ome`g']
+	matrix list oer`g'
+
+}
+
+* totals across all age and gender groups
+qui sum deaths if adaa==1 
+scalar toev = r(sum) // observed
+
+qui sum `pnums' if adaa == 1
+scalar teev = r(sum) // expected
+
+qui sum `omenums' if adaa == 1
+scalar tome = r(sum) // obs - exp
+	
+* write to matrices	
+mat table[5,1]=toev
+mat table[5,2]=teev
+mat table[5,3]=tome
+
+mat oer = [oer1,oer2,oer3,oer4,oer5,oer6,oer7,oer8,toev,teev,tome]	
+mat list table
+
+
 
 
