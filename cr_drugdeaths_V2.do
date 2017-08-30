@@ -49,10 +49,21 @@ egen ga=group(gender racebw), label
 tab ga
 
 gen lpop = log(population)
+
+* generate policy variable
+
+gen adaa = 0 if year < 1986
+replace adaa = 1 if year >= 1986
+label var adaa "Anti-Drug Abuse Act of 1986"
+label define adaa 0 "pre-policy" 1 "post-policy"
+label values adaa adaa 
+
+
  
 * save and export
 
 save "drugdeaths-race-sex.dta", replace
+
 
 
 export delimited "drugdeaths-race-sex.csv", replace
