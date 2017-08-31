@@ -1,8 +1,7 @@
 * do-file: cr_drugsdeaths_V2
 * date: Aug. 24, 2017
 * Author: Erika Braithwaite
-* Create drug deaths files - with age adjusted rates 
-* So no more stratifying by age categories
+* Just stratified by race and gender (ignoring age standardization)
 
 
  
@@ -43,7 +42,7 @@ label define gender 0 "female" 1 "male"
 label values gender gender
 label var gender "0 female 1 male"
 
-* create age-race-gender groups * 
+* create race-gender groups * 
 
 egen ga=group(gender racebw), label
 tab ga
@@ -63,8 +62,6 @@ label values adaa adaa
 * save and export
 
 save "drugdeaths-race-sex.dta", replace
-
-
 
 export delimited "drugdeaths-race-sex.csv", replace
 
